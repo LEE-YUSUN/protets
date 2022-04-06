@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+  
+struct GameData {
+    int win;
+    int lose;
+    int victory;
+    bool playing;
+};
+  
+void game_setting(struct GameData *gd);
+void ingame(struct GameData *gd);
+void game_over(struct GameData *gd);
+  
+char *gbb_flag[3] = {"가위", "바위", "보"};
+  
+int main()
+{
+    // Init
+    struct GameData gd;
+    gd.playing = true;
+      
+    srand(time(NULL));  // Init random seed
+      
+    while(gd.playing) {
+        // Setting and Start
+        game_setting(&gd);
+          
+        while(gd.win < gd.victory && gd.lose < gd.victory && gd.playing)
+            ingame(&gd);
+          
+        // End of Game
+        game_over(&gd);
+    }
+      
+    // Quit
+    return 0;
+}
+  
+void game_setting(struct GameData *gd)
+{
+    int v;
+      
+    printf("***********************\n");
+    printf("*** 가위바위보 게임 ***\n");
+    printf("***********************\n\n");
+      
+    printf("몇 판 이기면 승리할지 선택하세요. (최대=100): ");
+    scanf("%d", &v);
+    if (v <= 0)        gd->victory = 3;
+    else if (v > 100)  gd->victory = 100;
+    else               gd->victory = v;
+      
+    gd->win = 0; gd->lose = 0;
+    printf("\n** 게임을 시작합니다. **\n");
+}
+  
+void ingame(struct GameData *gd)
+{
+    int man_flag, cpu_flag;
+      
+    printf("\n현재 %d승 %d패입니다. (%d판 이기면 승리)\n", gd->win, gd->lose, gd->victory);
+    printf("선택하세요. (1=가위, 2=바위, 3=보, -1=중지): ");
+    scanf("%d", &man_flag);
+      
+    switch (man_flag) {
+        case 1: case 2: case 3: 
+            cpu_flag = rand() % 3 + 1;
+            printf("[당신] %s - ", gbb_flag[man_flag - 1] );
+            printf("%s [CPU]\n", gbb_flag[cpu_flag - 1] );
+              
+            switch (man_flag - cpu_flag) {
+                case -2:  // Gawi(1) v Bo(3)
+                case 1:   // Bawi(2) v Gawi(1), Bo(3) v Bawi(2)
+                    printf("▷ :) 당신이 이겼습니다.\n");
+                    gd->win++;
+                    break;
+                case -1:  // Gawi(1) v Bawi(2), Bawi(2) v Bo(3)
+                case 2:   // Bo(3) v Gawi(1)
+                    printf("▷ :( 당신이 졌습니다.\n");
+                    gd->lose++;
+                    break;
+                case 0:
+                    printf("▷ 비겼습니다.\n");
+            }
+              
+            break;
+        case -1:
+            printf("현재 게임을 중지합니다.\n");
+            gd->playing = false;
+            break;
+        default:
+            printf("다시 입력하세요.\n");
+    }
+}
+  
+void game_over(struct GameData *gd)
+{
+    char yn_flag;
+      
+    printf("\n결과: %d승 %d패\n", gd->win, gd->lose);
+    if (gd->win >= gd->victory)
+        printf("*** 축하합니다! 당신이 승리했습니다! ***\n");
+    else if (gd->lose >= gd->victory)
+        printf("*** 안타깝게도 당신은 패배했습니다. ***\n");
+      
+    printf("게임을 다시 하시겠습니까? (Y/N): ");
+    scanf(" %c", &yn_flag);
+    if (yn_flag == 'Y' || yn_flag == 'y')
+          gd->playing = true;   // Continue
+    else  gd->playing = false;  // Quit
+ 
+}
